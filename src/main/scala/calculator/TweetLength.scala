@@ -12,7 +12,6 @@ object TweetLength {
   def colorForRemainingCharsCount(remainingCharsCount: Signal[Int]): Signal[String] = {
     Signal {
       val r = remainingCharsCount()
-      println(r)
       if (r > 14)
         "green"
       else if (r > -1)
