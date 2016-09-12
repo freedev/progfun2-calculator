@@ -21,9 +21,8 @@ object Calculator {
        for {
          (k,v) <- namedExpressions
          } yield { 
-           val vVal = v()
            val refNameList = evaluatedExpr.getOrElseUpdate(k, List())
-           (k -> Signal{ eval(k, vVal, namedExpressions) })
+           (k -> Signal{ eval(k, v(), namedExpressions) })
          }
      }
 
@@ -53,27 +52,27 @@ object Calculator {
   def eval(k: String, expr: Expr, references: Map[String, Signal[Expr]]): Double = {
 
     expr match {
-           case l:Literal => { 
+           case Literal(v) => { 
 //             println("Literal k: " + k + " value: " + l.v)
-             l.v 
+             v 
            }
-           case plus:Plus => eval(k, plus.a, references) + eval(k, plus.b, references)
-           case minus:Minus => eval(k, minus.a, references) - eval(k, minus.b, references)
-           case times:Times => eval(k, times.a, references) * eval(k, times.b, references)
-           case divide:Divide => eval(k, divide.a, references) * eval(k, divide.b, references)
-           case r:Ref => { 
+           case Plus(a, b) => eval(k, a, references) + eval(k, b, references)
+           case Minus(a, b) => eval(k, a, references) - eval(k, b, references)
+           case Times(a, b) => eval(k, a, references) * eval(k, b, references)
+           case Divide(a, b) => eval(k, a, references) * eval(k, b, references)
+           case Ref(name) => { 
 //            val ref = getReferenceExpr(r.name, references)
 //            eval(k, ref, references - r.name)
 
-             println("Ref k: " + k + " r.name: " +  r.name)
-             if (hasCyclicDependency(k, r.name)) {
+             println("Ref k: " + k + " name: " +  name)
+             if (hasCyclicDependency(k, name)) {
                Double.NaN
              } else {
-               val expr = getReferenceExpr(r.name, references)
+               val expr = getReferenceExpr(name, references)
                val refNameList = evaluatedExpr.get(k).get
-               if (!refNameList.contains(r.name))
-                 evaluatedExpr.put(k, r.name :: refNameList)
-               eval(k, getReferenceExpr(r.name, references), references)
+               if (!refNameList.contains(name))
+                 evaluatedExpr.put(k, name :: refNameList)
+               eval(k, getReferenceExpr(name, references), references)
              }
            }
            case _ => { println("case not handled"); 0.0 }
